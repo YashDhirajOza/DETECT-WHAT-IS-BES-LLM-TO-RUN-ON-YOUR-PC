@@ -32,10 +32,10 @@ jobs:
         run: |
           if [ -f "changelog.md" ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            # Escape newlines for GitHub Actions output
             EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
             echo "changelog<<$EOF" >> $GITHUB_OUTPUT
             cat changelog.md >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT # <--- ADD THIS LINE
             echo "$EOF" >> $GITHUB_OUTPUT
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
