@@ -4,7 +4,7 @@ from datetime import datetime
 from huggingface_hub import HfApi
 
 # 1. Configuration
-CATALOG_FILE = "catalog.json"
+CATALOG_FILE = "models_catalog.json"
 TRUSTED_AUTHORS = ["bartowski", "city96", "Qwen", "meta-llama"]
 # Regex to find parameter counts like "70B", "8x7b", "3.8B", "0.5B"
 PARAM_REGEX = re.compile(r'(\d+(?:\.\d+)?(?:x\d+)?)[Bb]')
