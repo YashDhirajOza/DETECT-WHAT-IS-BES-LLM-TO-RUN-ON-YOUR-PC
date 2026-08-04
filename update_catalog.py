@@ -1,80 +1,113 @@
 import json
 import re
+import os
 from datetime import datetime
 from huggingface_hub import HfApi
 
-# 1. Configuration
 CATALOG_FILE = "models_catalog.json"
-TRUSTED_AUTHORS = ["bartowski", "city96", "Qwen", "meta-llama"]
-# Regex to find parameter counts like "70B", "8x7b", "3.8B", "0.5B"
-PARAM_REGEX = re.compile(r'(\d+(?:\.\d+)?(?:x\d+)?)[Bb]')
+CHANGELOG_FILE = "changelog.md"
 
-def load_catalog():
-    with open(CATALOG_FILE, 'r') as f:
-        return json.load(f)
+TRUSTED_ORGS = [
+    "meta-llama", "Qwen", "deepseek-ai", "mistralai", 
+    "google", "microsoft", "Alibaba-NLP"
+]
+TRUSTED_CONVERTERS = [
+    "bartowski", "city96", "unsloth", "lmstudio-community", "NousResearch"
+]
 
-def save_catalog(data):
-    with open(CATALOG_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+# Strict ranges prevent a 72B model from overwriting the 8B tier
+TIERS = [
+    {"name": "70B+", "min": 70, "max": 1000},
+    {"name": "32B-69B", "min": 32, "max": 69.9},
+    {"name": "12B-31B", "min": 12, "max": 31.9},
+    {"name": "8B-11B", "min": 8, "max": 11.9},
+    {"name": "3B-7B", "min": 3, "max": 7.9},
+    {"name": "Sub-2B", "min": 0, "max": 2.9}
+]
 
-def extract_params(model_name):
-    match = PARAM_REGEX.search(model_name)
-    if match:
-        raw_val = match.group(1)
-        # Handle MoE models like 8x7B (simplified by just taking the base param size)
-        if 'x' in raw_val.lower():
-            parts = raw_val.lower().split('x')
-            return float(parts[0]) * float(parts[1])
-        return float(raw_val)
+def parse_params(model_id):
+    # Handles MoE (e.g., 8x7B -> 56B total weight for hardware calculations)
+    moe_match = re.search(r'(\d+)x(\d+(?:\.\d+)?)b', model_id, re.IGNORECASE)
+    if moe_match:
+        return float(moe_match.group(1)) * float(moe_match.group(2))
+
+    # Handles standard notation (e.g., 14B, 0.5B)
+    std_match = re.search(r'(\d+(?:\.\d+)?)[Bb]', model_id)
+    if std_match:
+        return float(std_match.group(1))
+    
     return None
 
 def main():
     api = HfApi()
-    catalog = load_catalog()
     
-    # 2. Fetch top trending GGUF models
-    print("Fetching trending GGUF models from Hugging Face...")
+    # 1. Search text-generation, not just GGUF. Sort by downloads as a quality proxy.
+    print("Querying Hugging Face for top text-generation models...")
     models = api.list_models(
-        tags="gguf", 
-        sort="trending_score", 
-        direction=-1, 
-        limit=50
+        pipeline_tag="text-generation",
+        sort="downloads",
+        direction=-1,
+        limit=300
     )
     
-    # Filter by trusted authors
-    trusted_models = [m for m in models if m.author in TRUSTED_AUTHORS]
+    tier_winners = {tier["name"]: None for tier in TIERS}
     
+    # 2. Filter & Rank
+    for model in models:
+        author = model.id.split('/')[0]
+        if author not in TRUSTED_ORGS and author not in TRUSTED_CONVERTERS:
+            continue
+            
+        params = parse_params(model.id)
+        if params is None:
+            continue
+            
+        # 3. Range-based assignment
+        for tier in TIERS:
+            if tier["min"] <= params <= tier["max"]:
+                # Because we sorted by downloads, the first valid model we hit is the "best"
+                # (In v2, this is where you merge LMSYS Elo scores instead of relying purely on downloads)
+                if tier_winners[tier["name"]] is None:
+                    
+                    tier_winners[tier["name"]] = {
+                        "family": author,
+                        "model": model.id.split('/')[-1],
+                        "params": params,
+                        "context": 131072 if "128k" in model.id.lower() else 32768, # Placeholder logic
+                        "hf": model.id,
+                        "downloads": getattr(model, 'downloads', 0),
+                        "release": getattr(model, 'lastModified', datetime.now()).strftime("%Y-%m-%d")
+                    }
+                break
+                
+    # 4. Compare with existing catalog & generate Changelog
+    with open(CATALOG_FILE, 'r') as f:
+        catalog = json.load(f)
+        
+    changelog_lines = ["### 🤖 Model Updates\n"]
     updated = False
     
-    # 3. Match models to tiers
-    for tier in catalog["model_tiers"]:
-        min_params = tier["min_params_billion"]
+    for i, tier in enumerate(catalog.get("model_tiers", [])):
+        tier_name = TIERS[i]["name"]
+        new_winner = tier_winners.get(tier_name)
         
-        # Find the highest trending model that fits this tier
-        for model in trusted_models:
-            params = extract_params(model.id)
-            if params is None:
-                continue
-                
-            # Logic: If it meets the min_params for this tier, but isn't big enough for the next tier up
-            # (Assuming tiers are sorted highest to lowest in your JSON)
-            if params >= min_params:
-                new_example = f"{model.id.split('/')[-1]} ({params}B)"
-                
-                # If we found a trending model different from the current example, stage it
-                if new_example not in tier["example"]:
-                    print(f"Update found for {min_params}B+ tier: {new_example}")
-                    tier["example"] = new_example
-                    updated = True
-                break # Move to the next tier once we fill this one
-
-    # 4. Save if changes were made
+        if new_winner and new_winner["hf"] != tier.get("hf"):
+            old_model = tier.get("model", "None")
+            changelog_lines.append(f"- **{tier_name} tier**: `{old_model}` ↓ `{new_winner['model']}` (+{new_winner['downloads']} downloads)")
+            # Update the JSON structure with the rich metadata
+            catalog["model_tiers"][i] = new_winner
+            updated = True
+            
     if updated:
         catalog["last_updated"] = datetime.now().strftime("%Y-%m-%d")
-        save_catalog(catalog)
-        print("Catalog updated successfully.")
+        with open(CATALOG_FILE, 'w') as f:
+            json.dump(catalog, f, indent=2)
+            
+        with open(CHANGELOG_FILE, 'w') as f:
+            f.write("\n".join(changelog_lines))
+        print("Catalog updated. Changelog generated.")
     else:
-        print("No updates needed. Catalog is current.")
+        print("No updates required.")
 
 if __name__ == "__main__":
     main()
