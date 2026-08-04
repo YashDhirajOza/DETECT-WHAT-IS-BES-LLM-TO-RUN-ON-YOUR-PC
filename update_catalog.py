@@ -46,7 +46,7 @@ def main():
     models = api.list_models(
         pipeline_tag="text-generation",
         sort="downloads",
-        direction=-1,
+        
         limit=300
     )
     
