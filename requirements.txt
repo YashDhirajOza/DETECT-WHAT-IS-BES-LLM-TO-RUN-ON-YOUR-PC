@@ -1,0 +1,6 @@
+psutil>=5.9.0
+
+# Optional but recommended: gives accurate per-GPU free VRAM without shelling
+# out to nvidia-smi. If not installed, the script automatically falls back
+# to parsing `nvidia-smi` output instead.
+pynvml>=11.5.0
