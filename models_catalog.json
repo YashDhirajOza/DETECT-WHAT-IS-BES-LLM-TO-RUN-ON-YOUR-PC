@@ -1,18 +1,78 @@
 {
-  "last_updated": "2026-08-04",
+  "last_updated": "2026-08-11",
   "notes": "This file is intentionally separate from app.py. Update or replace it whenever new/better local models are released -- the script's hardware-scanning logic never needs to change, only this data.",
   "quantizations": {
-    "q4_k_m": { "bytes_per_param": 0.6, "label": "Q4_K_M (Balanced, Recommended default)" },
-    "q5_k_m": { "bytes_per_param": 0.75, "label": "Q5_K_M (Higher quality, more memory)" },
-    "q8_0":   { "bytes_per_param": 1.0,  "label": "Q8_0 (Near-lossless)" },
-    "fp16":   { "bytes_per_param": 2.0,  "label": "FP16 (Full precision)" }
+    "q4_k_m": {
+      "bytes_per_param": 0.6,
+      "label": "Q4_K_M (Balanced, Recommended default)"
+    },
+    "q5_k_m": {
+      "bytes_per_param": 0.75,
+      "label": "Q5_K_M (Higher quality, more memory)"
+    },
+    "q8_0": {
+      "bytes_per_param": 1.0,
+      "label": "Q8_0 (Near-lossless)"
+    },
+    "fp16": {
+      "bytes_per_param": 2.0,
+      "label": "FP16 (Full precision)"
+    }
   },
   "model_tiers": [
-    { "min_params_billion": 70, "example": "Llama 3.3 70B / Qwen 2.5 72B" },
-    { "min_params_billion": 32, "example": "Qwen 2.5 32B / QwQ 32B" },
-    { "min_params_billion": 12, "example": "Gemma 3 12B / Mistral Nemo 12B" },
-    { "min_params_billion": 8,  "example": "Llama 3.1 8B / Qwen 2.5 7B" },
-    { "min_params_billion": 3,  "example": "Llama 3.2 3B / Phi-3.5 Mini" },
-    { "min_params_billion": 0,  "example": "Sub-2B edge models (Qwen 2.5 0.5B/1.5B)" }
+    {
+      "family": "Qwen",
+      "model": "Qwen-72B",
+      "params": 72.0,
+      "context": 32768,
+      "hf": "Qwen/Qwen-72B",
+      "downloads": 2436483,
+      "release": "2024-10-09"
+    },
+    {
+      "family": "Qwen",
+      "model": "Qwen3-32B",
+      "params": 32.0,
+      "context": 32768,
+      "hf": "Qwen/Qwen3-32B",
+      "downloads": 7595153,
+      "release": "2025-07-26"
+    },
+    {
+      "family": "unsloth",
+      "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+      "params": 30.0,
+      "context": 32768,
+      "hf": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
+      "downloads": 6575381,
+      "release": "2026-01-30"
+    },
+    {
+      "family": "Qwen",
+      "model": "Qwen3-8B",
+      "params": 8.0,
+      "context": 32768,
+      "hf": "Qwen/Qwen3-8B",
+      "downloads": 15207936,
+      "release": "2025-07-26"
+    },
+    {
+      "family": "Qwen",
+      "model": "Qwen2.5-7B-Instruct",
+      "params": 7.0,
+      "context": 32768,
+      "hf": "Qwen/Qwen2.5-7B-Instruct",
+      "downloads": 11218582,
+      "release": "2025-01-12"
+    },
+    {
+      "family": "Qwen",
+      "model": "Qwen3-0.6B",
+      "params": 0.6,
+      "context": 32768,
+      "hf": "Qwen/Qwen3-0.6B",
+      "downloads": 27629624,
+      "release": "2025-07-26"
+    }
   ]
 }
