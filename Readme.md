@@ -1,4 +1,5 @@
-# LLM Hardware Capability Checker
+# LLM Hardware Capability Checker A Rouge Estimate 
+
 
 A small script that scans your CPU, RAM, GPU (NVIDIA), and disk, then
 estimates the largest local LLM you can comfortably run.
