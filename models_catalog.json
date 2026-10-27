@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-11",
+  "last_updated": "2026-10-27",
   "notes": "This file is intentionally separate from app.py. Update or replace it whenever new/better local models are released -- the script's hardware-scanning logic never needs to change, only this data.",
   "quantizations": {
     "q4_k_m": {
@@ -21,13 +21,13 @@
   },
   "model_tiers": [
     {
-      "family": "Qwen",
-      "model": "Qwen-72B",
-      "params": 72.0,
+      "family": "meta-llama",
+      "model": "Llama-3.1-405B-FP8",
+      "params": 405.0,
       "context": 32768,
-      "hf": "Qwen/Qwen-72B",
-      "downloads": 2436483,
-      "release": "2024-10-09"
+      "hf": "meta-llama/Llama-3.1-405B-FP8",
+      "downloads": 468559,
+      "release": "2024-12-06"
     },
     {
       "family": "Qwen",
@@ -39,13 +39,13 @@
       "release": "2025-07-26"
     },
     {
-      "family": "unsloth",
-      "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-      "params": 30.0,
+      "family": "Qwen",
+      "model": "Qwen3-14B",
+      "params": 14.0,
       "context": 32768,
-      "hf": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
-      "downloads": 6575381,
-      "release": "2026-01-30"
+      "hf": "Qwen/Qwen3-14B",
+      "downloads": 11433704,
+      "release": "2025-07-26"
     },
     {
       "family": "Qwen",
@@ -58,12 +58,12 @@
     },
     {
       "family": "Qwen",
-      "model": "Qwen2.5-7B-Instruct",
-      "params": 7.0,
+      "model": "Qwen3-4B",
+      "params": 4.0,
       "context": 32768,
-      "hf": "Qwen/Qwen2.5-7B-Instruct",
-      "downloads": 11218582,
-      "release": "2025-01-12"
+      "hf": "Qwen/Qwen3-4B",
+      "downloads": 11230567,
+      "release": "2025-07-26"
     },
     {
       "family": "Qwen",
